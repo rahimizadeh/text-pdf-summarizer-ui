@@ -26,8 +26,11 @@ A lightweight web application that allows users to paste text or upload a PDF do
 📁 Folder Example
 
 text-pdf-summarizer-ui/
+
 ├── app.py
+
 ├── requirements.txt
+
 └── README.md
 
 1- Create a virtual environment (optional)
