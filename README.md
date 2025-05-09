@@ -17,16 +17,13 @@ A lightweight web application that allows users to paste text or upload a PDF do
 - **HuggingFace**: Provides transformer models like BART for summarization
 
 ## 🔧 Getting Started
-
-1. **Clone the repo**
+**Clone the repo**
    ```bash
    git clone https://github.com/yourusername/text-pdf-summarizer-ui.git
    cd text-pdf-summarizer-ui
 
 📁 Folder Example
-
 text-pdf-summarizer-ui/
-
 ├── app.py
 ├── requirements.txt
 └── README.md
@@ -43,7 +40,7 @@ text-pdf-summarizer-ui/
 
 🧠 About the Tools
    LangChain
-   LangChain provides a modular framework for building applications with language models. Here, it's used to   manage prompting and model output formatting.
+   LangChain provides a modular framework for building applications with language models. Here, it's used to manage prompting and model output formatting.
 
    HuggingFace Transformers
    We use the facebook/bart-large-cnn model, a powerful encoder-decoder model ideal for summarization.
