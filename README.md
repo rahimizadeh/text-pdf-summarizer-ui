@@ -17,56 +17,65 @@ A lightweight web application that allows users to paste text or upload a PDF do
 - **HuggingFace**: Provides transformer models like BART for summarization
 
 ## 🔧 Getting Started
-**Clone the repo**
+
+**1- Clone the repo**
    ```bash
    git clone https://github.com/yourusername/text-pdf-summarizer-ui.git
    cd text-pdf-summarizer-ui
+ ```
 
-📁 Folder Example
-text-pdf-summarizer-ui/
-├── app.py
-├── requirements.txt
-└── README.md
+&nbsp;&nbsp;&nbsp;📁**Project Structure**  
 
-1- Create a virtual environment (optional)
-   python -m venv venv
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── text-pdf-summarizer-ui/  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── app.py   &nbsp;&nbsp;&nbsp;# Application  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── requirements.txt               
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── README.md
+
+**2- Create a virtual environment (optional)**
+   ``` python -m venv venv
    source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+ ```
 
-2- Install dependencies
-   pip install -r requirements.txt
+**3- Install dependencies**
 
-3- Run the app
-   python app.py
+```bash
+pip install -r requirements.txt
+ ```
 
-🧠 About the Tools
-   LangChain
-   LangChain provides a modular framework for building applications with language models. Here, it's used to manage prompting and model output formatting.
+**4- Run the app**
+```bash
+python app.py
+```
 
-   HuggingFace Transformers
-   We use the facebook/bart-large-cnn model, a powerful encoder-decoder model ideal for summarization.
 
-   Gradio
-   Gradio lets us quickly build and share user-friendly web interfaces for Machine Learning apps.
+## 🧠 About the Tools
 
-🔍 Implementation Details
-   1- Model Initialization: Using HuggingFacePipeline via LangChain
-   2- PromptTemplate: Wraps text for inference
-   3- PDF Handling: Reads uploaded file as bytes and extracts text using PyPDF2
-   4- UI Logic: Built with Gradio Blocks to control layout, input, and output
+   &nbsp;**LangChain**: provides a modular framework for building applications with language models. Here, it's used to manage prompting and model output formatting.
 
-✅ Example Usage
+   &nbsp;**HuggingFace Transformers**: We use the facebook/bart-large-cnn model, a powerful encoder-decoder model ideal for summarization.
+
+   &nbsp;**Gradio**: lets us quickly build and share user-friendly web interfaces for Machine Learning apps.
+
+
+## 🔍 Implementation Details
+
+   &nbsp;&nbsp;&nbsp;1- Model Initialization: Using HuggingFacePipeline via LangChain
+   
+  &nbsp;&nbsp;&nbsp;2- PromptTemplate: Wraps text for inference
+   
+  &nbsp;&nbsp;&nbsp;3- PDF Handling: Reads uploaded file as bytes and extracts text using PyPDF2
+   
+  &nbsp;&nbsp;&nbsp;4- UI Logic: Built with Gradio Blocks to control layout, input, and output
+
+
+## ✅ Example Usage
    - Upload a PDF or paste article text
    - Cick “Convert PDF to Text” (if PDF)- 
    - Click “Summarize Text”
    - View summary below the input
 
-📝 License
+## 📝 License
     MIT
 
-🤝 Contributions
+##  🤝 Contributions
     Pull requests and suggestions welcome!
-
-
-
-
-
