@@ -2,6 +2,8 @@
 
 A lightweight web application that allows users to paste text or upload a PDF document, then summarizes the content using a HuggingFace transformer model integrated with LangChain and displayed via a Gradio interface.
 
+Please see https://huggingface.co/spaces/rahimizadeh/text-pdf-summarizer-ui to run this app online!
+
 ## 🚀 Key Features
 
 - Input text manually or via PDF upload
@@ -20,7 +22,7 @@ A lightweight web application that allows users to paste text or upload a PDF do
 
 **1- Clone the repo**
    ```bash
-   git clone https://github.com/yourusername/text-pdf-summarizer-ui.git
+   git clone https://github.com/rahimizadeh/text-pdf-summarizer-ui.git
    cd text-pdf-summarizer-ui
  ```
 
