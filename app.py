@@ -17,12 +17,22 @@ class TextSummarizer:
         llm = HuggingFacePipeline.from_model_id(
             model_id=self.model_id,
             task="summarization",
+            # Generating consistent output
             pipeline_kwargs={
                 "max_length": max_length,
                 "min_length": min_length,
                 "do_sample": False  # Deterministic output
             }
         )
+
+       """ Generating diverse outputs
+             pipeline_kwargs = {
+                "max_length": 250,
+                "do_sample": True,
+                "temperature": 0.7,  # More creative
+                "top_k": 50,         # Limit to top 50 tokens
+                "top_p": 0.95        # Use nucleus sampling
+            }"""
 
         # Create a basic prompt template that just passes the text
         prompt = PromptTemplate(input_variables=["document"], template="""{document}""")
