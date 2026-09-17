@@ -1,83 +1,78 @@
-# 📝 Text & PDF Summarizer UI
+# Text & PDF Summarizer UI
 
-A lightweight web application that allows users to paste text or upload a PDF document, then summarizes the content using a HuggingFace transformer model integrated with LangChain and displayed via a Gradio interface.
+A Gradio application for summarizing pasted text or text extracted from PDFs with `facebook/bart-large-cnn`.
 
-Please see https://huggingface.co/spaces/rahimizadeh/text-pdf-summarizer-ui to run this app online!
+## Improvements in this version
 
-## 🚀 Key Features
+- The model and tokenizer are loaded once and cached.
+- Long documents are split into tokenizer-aware chunks before summarization.
+- PDF bytes are read in memory rather than written to undeleted temporary files.
+- The UI describes generation length in tokens, not words.
+- `requirements.txt` is correctly named and can be installed directly.
 
-- Input text manually or via PDF upload
-- Extracts and summarizes PDF text using NLP
-- User-friendly Gradio interface
-- Uses pre-trained `facebook/bart-large-cnn` summarization model
+## Setup
 
-## 🏗️ Project Architecture
+```bash
+git clone https://github.com/rahimizadeh/text-pdf-summarizer-ui.git
+cd text-pdf-summarizer-ui
+python -m venv .venv
+```
 
-- **Gradio**: Frontend interface to interact with the app
-- **PyPDF2**: Extracts text from PDF files
-- **LangChain**: Framework for managing LLM-based workflows
-- **HuggingFace**: Provides transformer models like BART for summarization
+Windows:
 
-## 🔧 Getting Started
+```bash
+.venv\Scripts\activate
+```
 
-**1- Clone the repo**
-   ```bash
-   git clone https://github.com/rahimizadeh/text-pdf-summarizer-ui.git
-   cd text-pdf-summarizer-ui
- ```
+macOS/Linux:
 
-&nbsp;&nbsp;&nbsp;📁**Project Structure**  
+```bash
+source .venv/bin/activate
+```
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── text-pdf-summarizer-ui/  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── app.py   &nbsp;&nbsp;&nbsp;# Application  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── requirements.txt               
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── README.md
-
-**2- Create a virtual environment (optional)**
-   ``` python -m venv venv
-   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
- ```
-
-**3- Install dependencies**
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
- ```
+```
 
-**4- Run the app**
+Run:
+
 ```bash
 python app.py
 ```
 
+Then open the local Gradio URL shown in the terminal.
 
-## 🧠 About the Tools
+## Usage
 
-   &nbsp;**LangChain**: provides a modular framework for building applications with language models. Here, it's used to manage prompting and model output formatting.
+1. Paste text, or upload a PDF and click **Convert PDF to Text**.
+2. Choose a maximum summary-token value (40-300 is supported by the UI logic).
+3. Click **Summarize Text**.
 
-   &nbsp;**HuggingFace Transformers**: We use the facebook/bart-large-cnn model, a powerful encoder-decoder model ideal for summarization.
+For long documents the application summarizes chunks individually and then, when feasible, performs a final summary over the combined partial summaries.
 
-   &nbsp;**Gradio**: lets us quickly build and share user-friendly web interfaces for Machine Learning apps.
+## Quick checks
 
+Syntax check:
 
-## 🔍 Implementation Details
+```bash
+python -m py_compile app.py
+```
 
-   &nbsp;&nbsp;&nbsp;1- Model Initialization: Using HuggingFacePipeline via LangChain
-   
-  &nbsp;&nbsp;&nbsp;2- PromptTemplate: Wraps text for inference
-   
-  &nbsp;&nbsp;&nbsp;3- PDF Handling: Reads uploaded file as bytes and extracts text using PyPDF2
-   
-  &nbsp;&nbsp;&nbsp;4- UI Logic: Built with Gradio Blocks to control layout, input, and output
+Import check:
 
+```bash
+python -c "import app; print('app import OK')"
+```
 
-## ✅ Example Usage
-   - Upload a PDF or paste article text
-   - Cick “Convert PDF to Text” (if PDF)- 
-   - Click “Summarize Text”
-   - View summary below the input
+The first real summarization downloads the Hugging Face model, so it requires internet access and may take longer than later requests.
 
-## 📝 License
-    MIT
+## Online demo
 
-##  🤝 Contributions
-    Pull requests and suggestions welcome!
+A Hugging Face Space may be available at:
+https://huggingface.co/spaces/rahimizadeh/text-pdf-summarizer-ui
+
+## License
+
+MIT
