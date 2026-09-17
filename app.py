@@ -1,116 +1,102 @@
-# Running on local URL:  http://127.0.0.1:7860
+"""Gradio text/PDF summarizer with cached Hugging Face model loading."""
 
-import gradio as gr                 # Gradio: for creating web-based user interfaces
-import PyPDF2                      # PyPDF2: for reading PDF files
-import tempfile                    # tempfile: to safely handle temporary files
-from langchain.prompts import PromptTemplate        # LangChain: for managing prompt templates
-from langchain_huggingface.llms import HuggingFacePipeline  # LangChain integration with HuggingFace models
+from functools import lru_cache
+from io import BytesIO
 
-# Define a summarization class
-class TextSummarizer:
-    def __init__(self):
-        # Define the model to use for summarization
-        self.model_id = "facebook/bart-large-cnn"
+import gradio as gr
+from PyPDF2 import PdfReader
+from transformers import AutoTokenizer, pipeline
 
-    def summarize_text(self, article_text, max_length=150, min_length=30):
-        # Load a summarization pipeline with custom length settings
-        llm = HuggingFacePipeline.from_model_id(
-            model_id=self.model_id,
-            task="summarization",
-            # Generating consistent output
-            pipeline_kwargs={
-                "max_length": max_length,
-                "min_length": min_length,
-                "do_sample": False  # Deterministic output
-            }
-        )
+MODEL_ID = "facebook/bart-large-cnn"
+MAX_INPUT_TOKENS = 900
 
-       """ Generating diverse outputs
-             pipeline_kwargs = {
-                "max_length": 250,
-                "do_sample": True,
-                "temperature": 0.7,  # More creative
-                "top_k": 50,         # Limit to top 50 tokens
-                "top_p": 0.95        # Use nucleus sampling
-            }"""
 
-        # Create a basic prompt template that just passes the text
-        prompt = PromptTemplate(input_variables=["document"], template="""{document}""")
+@lru_cache(maxsize=1)
+def get_tokenizer():
+    return AutoTokenizer.from_pretrained(MODEL_ID)
 
-        # Format the article text into the prompt
-        prompt_input = prompt.format(document=article_text)
 
-        # Generate the summary using the model
-        summary = llm.__call__(prompt_input)
+@lru_cache(maxsize=1)
+def get_summarizer():
+    return pipeline("summarization", model=MODEL_ID, tokenizer=MODEL_ID)
 
-        # If the model returns a list of summaries, extract the actual summary text
-        if isinstance(summary, list):
-            return summary[0]['summary_text'] if 'summary_text' in summary[0] else str(summary[0])
-        return str(summary)  # Fallback for other formats
 
-# Function to extract text from an uploaded PDF
-def pdf_to_text(pdf_file):
-    try:
-        # Create a temporary file to write the uploaded PDF bytes
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(pdf_file)      # Write raw bytes directly
-            tmp.flush()              # Make sure data is written to disk
+def chunk_text(text: str, max_tokens: int = MAX_INPUT_TOKENS):
+    tokenizer = get_tokenizer()
+    token_ids = tokenizer.encode(text, add_special_tokens=False)
+    return [
+        tokenizer.decode(token_ids[i : i + max_tokens], skip_special_tokens=True)
+        for i in range(0, len(token_ids), max_tokens)
+    ]
 
-            # Use PyPDF2 to read and extract text
-            reader = PyPDF2.PdfReader(tmp.name)
-            text = "\n".join(page.extract_text() or "" for page in reader.pages)
 
-            # Return cleaned-up text or a message if extraction fails
-            return text.strip() if text.strip() else "No extractable text found in the PDF."
-    except Exception as e:
-        return f"Error reading PDF: {str(e)}"  # Return readable error message
-
-# Instantiate the summarizer class
-summarizer = TextSummarizer()
-
-# Summarize input with user-defined maximum length
-def summarize_input(text, max_words):
-    if not text.strip():
+def summarize_text(text: str, max_output_tokens: int = 150) -> str:
+    text = (text or "").strip()
+    if not text:
         return "Please enter or extract some text first."
 
+    max_output_tokens = max(40, min(int(max_output_tokens), 300))
+    min_output_tokens = max(10, min(max_output_tokens - 1, max_output_tokens // 4))
+    summarizer = get_summarizer()
+
+    chunks = chunk_text(text)
+    partials = []
+    for chunk in chunks:
+        result = summarizer(
+            chunk,
+            max_length=max_output_tokens,
+            min_length=min_output_tokens,
+            do_sample=False,
+            truncation=True,
+        )[0]["summary_text"]
+        partials.append(result)
+
+    if len(partials) == 1:
+        return partials[0]
+
+    combined = " ".join(partials)
+    if len(get_tokenizer().encode(combined, add_special_tokens=False)) <= MAX_INPUT_TOKENS:
+        return summarizer(
+            combined,
+            max_length=max_output_tokens,
+            min_length=min_output_tokens,
+            do_sample=False,
+            truncation=True,
+        )[0]["summary_text"]
+
+    return combined
+
+
+def pdf_to_text(pdf_file):
+    if pdf_file is None:
+        return "Please upload a PDF file first."
     try:
-        # Convert max_words input to integer
-        max_length = int(max_words)
-        # Set a safe minimum length for quality summaries
-        min_length = max(30, max_length // 4)
+        reader = PdfReader(BytesIO(pdf_file))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages).strip()
+        return text or "No extractable text found in the PDF."
+    except Exception as exc:
+        return f"Error reading PDF: {exc}"
 
-        # Generate the summary
-        return summarizer.summarize_text(text, max_length=max_length, min_length=min_length)
-    except Exception as e:
-        return f"Error during summarization: {str(e)}"
 
-# Build the Gradio UI
 with gr.Blocks() as demo:
-    gr.Markdown("## 📝 Text & PDF Summarizer with Length Control")
-
+    gr.Markdown("## 📝 Text & PDF Summarizer")
     with gr.Row():
-        # Text input for manually entering article
-        text_input = gr.Textbox(label="Enter article text", lines=15, placeholder="Paste your article here...")
-
-        # Upload input for PDF files
+        text_input = gr.Textbox(
+            label="Enter article text",
+            lines=15,
+            placeholder="Paste your article here...",
+        )
         pdf_file = gr.File(label="Or upload PDF", file_types=[".pdf"], type="binary")
 
-    # User input for controlling max summary length
-    max_words = gr.Number(label="Max summary word count", value=150, precision=0)
-
+    max_tokens = gr.Number(label="Maximum summary tokens", value=150, precision=0)
     with gr.Row():
-        # Button to convert PDF to text
         convert_btn = gr.Button("Convert PDF to Text")
-        # Button to generate the summary
         summary_btn = gr.Button("Summarize Text")
 
-    # Textbox to display the summary output
     output_text = gr.Textbox(label="Summary", lines=10)
-
-    # Link buttons to their respective functions
     convert_btn.click(fn=pdf_to_text, inputs=pdf_file, outputs=text_input)
-    summary_btn.click(fn=summarize_input, inputs=[text_input, max_words], outputs=output_text)
+    summary_btn.click(fn=summarize_text, inputs=[text_input, max_tokens], outputs=output_text)
 
-# Launch the app if run directly
+
 if __name__ == "__main__":
     demo.launch()
